@@ -15,6 +15,11 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public GameObject moveButton;
     public GameObject passButton;
     public GameObject shootButton;
+    public GameObject cancelButton;
+    public GameObject cancel2Button;
+
+    public Canvas mcan;
+    public Camera cam;
 
     public bool shootCountDown = false;
 
@@ -23,6 +28,8 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     {
         Button btn = this.GetComponent<Button> ();
 		btn.onClick.AddListener (OnClick);
+        cancelButton = GameObject.Find("ButtonMoveCancel");
+        cancel2Button = GameObject.Find("ButtonMoveCancel2");
     }
 
     // Update is called once per frame
@@ -61,7 +68,7 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             }
             else if(distance > 4.0f)
             {
-                possibility = 50;
+                possibility = 40;
                 for(int i = 0; i < Global.countPlayer(Global.side, Global.half == Global.side); i++)
                 {
                     possibility/=2;
@@ -69,20 +76,21 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             }
             else
             {
-                possibility = 100;
+                possibility = 90;
                 for(int i = 0; i < Global.countPlayer(Global.side, Global.half == Global.side); i++)
                 {
                     possibility/=2;
                 }
             }
 
-            if(Global.movePoint==2)
-                possibility *= 0.6f;
-            if(Global.movePoint==1)
-                possibility *= 0.2f;
+            //if (Global.movePoint < 3)
+            //    possibility = 0;
 
             GameObject.Find("RightUpText").GetComponent<TMP_Text>().text = "GOAL RATE :";
-            GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = Mathf.Round(possibility).ToString()+"%";
+            if (Global.movePoint >= 3)
+                GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = Mathf.Round(possibility).ToString() + "%";
+            else
+                GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = "--";
             Global.shootButtonTimer = 100.0f;
         }        
     }
@@ -94,6 +102,23 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     //Responsible for guiding different actions
     public void OnClick()
     {
+        if(buttonType == "Cancel")
+        {
+            Global.isPlayerSelected = false;
+            Global.player = Global.position = null;
+
+            moveButton.transform.localPosition = Global.hide;
+            passButton.transform.localPosition = Global.hide;
+            shootButton.transform.localPosition = Global.hide;
+            cancelButton.transform.localPosition = Global.hide;
+        }
+        if(buttonType == "Cancel2")
+        {
+            Global.isPlayerSelected = false;
+            Global.player = Global.position = null;
+            Global.isToPass = Global.isToMove = false;
+            cancel2Button.transform.localPosition = Global.hide;
+        }
 		if(buttonType == "Shoot")
         {
             if(Global.isPlayerHoldsBall == false)
@@ -104,6 +129,15 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
                 Global.message = "This player is not holding the ball!";
                 Global.timer = 3.0f;
                 Debug.Log("This player is not holding the ball!");
+            }
+            else if(Global.movePoint < 3)
+            {
+                Global.isPlayerSelected = false;
+                Global.player = Global.position = null;
+
+                Global.message = "Not enough move points!";
+                Global.timer = 3.0f;
+                Debug.Log("Not enough move points!");
             }
             else
             {
@@ -153,6 +187,7 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             moveButton.transform.localPosition = Global.hide;
             passButton.transform.localPosition = Global.hide;
             shootButton.transform.localPosition = Global.hide;
+            cancelButton.transform.localPosition = Global.hide;
 
         }
         if(buttonType == "Move")
@@ -163,6 +198,19 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             moveButton.transform.localPosition = Global.hide;
             passButton.transform.localPosition = Global.hide;
             shootButton.transform.localPosition = Global.hide;
+            cancelButton.transform.localPosition = Global.hide;
+
+            var canvasRT = mcan.GetComponent<RectTransform>();
+            var canvasCam = mcan.worldCamera;
+            Vector2 UIPos;
+            Vector3 screenPos = cam.WorldToScreenPoint(Global.player.transform.localPosition);        
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRT, screenPos, canvasCam, out UIPos);
+            Vector2 cancel2ButtonPos;
+            if(Global.side == Global.half)
+                cancel2ButtonPos = UIPos - new Vector2(30f, 0f);
+            else
+                cancel2ButtonPos = UIPos - new Vector2(-30f, 00f);
+            cancel2Button.transform.localPosition = cancel2ButtonPos; 
         }
         if(buttonType == "Pass")
         {
@@ -183,6 +231,19 @@ public class PlayerButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             moveButton.transform.localPosition = Global.hide;
             passButton.transform.localPosition = Global.hide;
             shootButton.transform.localPosition = Global.hide;
+            cancelButton.transform.localPosition = Global.hide;
+
+            var canvasRT = mcan.GetComponent<RectTransform>();
+            var canvasCam = mcan.worldCamera;
+            Vector2 UIPos;
+            Vector3 screenPos = cam.WorldToScreenPoint(Global.player.transform.localPosition);        
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRT, screenPos, canvasCam, out UIPos);
+            Vector2 cancel2ButtonPos;
+            if(Global.side == Global.half)
+                cancel2ButtonPos = UIPos - new Vector2(30f, 0f);
+            else
+                cancel2ButtonPos = UIPos - new Vector2(-30f, 00f);
+            cancel2Button.transform.localPosition = cancel2ButtonPos; 
         }
 	}
 }

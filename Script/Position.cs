@@ -16,11 +16,13 @@ public class Position : MonoBehaviour
     public int cost;
 
     public bool passCountDown = false;
+    
+    public GameObject cancel2Button;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        cancel2Button = GameObject.Find("ButtonMoveCancel2");
     }
 
     // Update is called once per frame
@@ -56,10 +58,10 @@ public class Position : MonoBehaviour
             }
             if(position.GetComponent<Position>().standPlayer != null)
             {
-                if(position.GetComponent<Position>().standPlayer.GetComponent<Player>().mSide == Global.player.GetComponent<Player>().mSide)
+                if (position.GetComponent<Position>().standPlayer.GetComponent<Player>().mSide == Global.player.GetComponent<Player>().mSide)
                     return;
-                if(position.GetComponent<Position>().standPlayer.GetComponent<Player>().isGK == true)
-                    return;
+                //if (position.GetComponent<Position>().standPlayer.GetComponent<Player>().isGK == true)
+                //    return;
             }
             if(position.GetComponent<Position>().standPlayer != null)
             {
@@ -78,19 +80,24 @@ public class Position : MonoBehaviour
         }
         if(Global.isToPass == true)
         {
-            if(position.GetComponent<Position>().standPlayer == null)
+            if (position.GetComponent<Position>().standPlayer == null)
                 return;
-            if(position.GetComponent<Position>().standPlayer.GetComponent<Player>().mSide!=Global.player.GetComponent<Player>().mSide)
+            if (position.GetComponent<Position>().standPlayer.GetComponent<Player>().mSide != Global.player.GetComponent<Player>().mSide)
                 return;
-            
-            if(Vector3.Distance(Global.position.transform.localPosition, position.transform.localPosition)<5.5f)
+
+            if (Vector3.Distance(Global.position.transform.localPosition, position.transform.localPosition) < 5.5f)
                 cost = 1;
-            else if(Vector3.Distance(Global.position.transform.localPosition, position.transform.localPosition)<9.5f)
+            else if (Vector3.Distance(Global.position.transform.localPosition, position.transform.localPosition) < 9.5f)
                 cost = 2;
-            else
+            else if (Vector3.Distance(Global.position.transform.localPosition, position.transform.localPosition) < 13.5f)
                 cost = 3;
+            else
+                cost = -1;
             GameObject.Find("RightUpText").GetComponent<TMP_Text>().text = "PASS COST :";
-            GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = cost.ToString();
+            if (cost != -1)
+                GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = cost.ToString();
+            else
+                GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = "--";
             Global.buttonTimer = 100.0f;
             
             light.SetActive(true);
@@ -122,6 +129,7 @@ public class Position : MonoBehaviour
                 Global.player = Global.position = null;
                 Global.buttonTimer = 0f;
                 light.SetActive(false);
+                cancel2Button.transform.localPosition = Global.hide;
                 return;
             }
             Global.isDribble = false;
@@ -137,20 +145,29 @@ public class Position : MonoBehaviour
                     Global.player = Global.position = null;
                     Global.buttonTimer = 0f;
                     light.SetActive(false);
+                    cancel2Button.transform.localPosition = Global.hide;
                     return;
                 }
                 if(position.GetComponent<Position>().standPlayer.GetComponent<Player>().isGK == true)
                 {
-                    Global.message = "You can't move your player to the goalkeeper!";
-                    Global.timer = 3.0f;
-                    Debug.Log("You can't move your player to the goalkeeper!");
-                    Global.isPlayerSelected = false;
-                    Global.isToMove = false;
-                    Global.player = Global.position = null;
-                    Global.buttonTimer = 0f;
-                    light.SetActive(false);
-                    return;
+                    if(position.GetComponent<Position>().standBall == false)
+                    {
+                        Global.message = "You can't break through the goalkeeper!";
+                        Global.timer = 3.0f;
+                        Debug.Log("You can't break through the goalkeeper!");
+                        Global.isPlayerSelected = false;
+                        Global.isToMove = false;
+                        Global.player = Global.position = null;
+                        Global.buttonTimer = 0f;
+                        light.SetActive(false);
+                        cancel2Button.transform.localPosition = Global.hide;
+                        return;
+                    }
+                    else
+                        Global.isDribbleGK = true;
                 }
+                else
+                    Global.isDribbleGK = false;
                 if(Global.position.GetComponent<Position>().standBall == true && Global.movePoint < cost)
                 {
                     Global.message = "Your point is not enough for dribbling!";
@@ -161,6 +178,7 @@ public class Position : MonoBehaviour
                     Global.player = Global.position = null;
                     Global.buttonTimer = 0f;
                     light.SetActive(false);
+                    cancel2Button.transform.localPosition = Global.hide;
                     return;
                 }
                 Global.isDribble = true;
@@ -196,6 +214,7 @@ public class Position : MonoBehaviour
             Global.isReadyToMove = true;
             Global.adjustPlayerRotationMove(Global.player, Global.desPosition, Global.isPlayerHoldsBall);
             Global.player.GetComponent<Player>().anime.Play("rig|walk");
+            cancel2Button.transform.localPosition = Global.hide;
             light.SetActive(false);
         }
         if(Global.isToPass == true)
@@ -210,6 +229,7 @@ public class Position : MonoBehaviour
                 Global.player = Global.position = null;
                 Global.buttonTimer = 0f;
                 light.SetActive(false);
+                cancel2Button.transform.localPosition = Global.hide;
                 return;
             }
             if(position.GetComponent<Position>().standPlayer.GetComponent<Player>().mSide != Global.player.GetComponent<Player>().mSide)
@@ -222,9 +242,23 @@ public class Position : MonoBehaviour
                 Global.player = Global.position = null;
                 Global.buttonTimer = 0f;
                 light.SetActive(false);
+                cancel2Button.transform.localPosition = Global.hide;
                 return;
             }
-            if(Global.movePoint < cost)
+            if (cost == -1)
+            {
+                Global.message = "The passing distance is too far!";
+                Global.timer = 3.0f;
+                Debug.Log("The passing distance is too far!");
+                Global.isPlayerSelected = false;
+                Global.isToPass = false;
+                Global.player = Global.position = null;
+                Global.buttonTimer = 0f;
+                light.SetActive(false);
+                cancel2Button.transform.localPosition = Global.hide;
+                return;
+            }
+            if (Global.movePoint < cost)
             {
                 Global.message = "Your point is not enough for this passing!";
                 Global.timer = 3.0f;
@@ -234,9 +268,11 @@ public class Position : MonoBehaviour
                 Global.player = Global.position = null;
                 Global.buttonTimer = 0f;
                 light.SetActive(false);
+                cancel2Button.transform.localPosition = Global.hide;
                 return;
             }
             Global.buttonTimer = 0f;
+            cancel2Button.transform.localPosition = Global.hide;
             light.SetActive(false);
 
             Global.desPosition = position;

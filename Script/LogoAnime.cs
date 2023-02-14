@@ -22,6 +22,7 @@ public class LogoAnime : MonoBehaviour
     {
         if(Global.logoTimer >= 0f)
         {
+            Global.isWorking = true;
             exeOnce = true;
             if(description == Global.logoMessage)
             {
@@ -52,7 +53,7 @@ public class LogoAnime : MonoBehaviour
                             Global.secondHalfKickoff = true;
                         Global.logoMessage2 = false;
                     }
-                    Global.isWorking = false;
+                    //Global.isWorking = false;
                     Global.player = Global.position = null;
                     Global.leftPoint = Global.movePoint;                    
                 }
@@ -68,6 +69,7 @@ public class LogoAnime : MonoBehaviour
                     GameObject.Find("ResultVisionPos").transform.localPosition -= Global.bigDelta;
                     GameObject.Find("Exit").transform.localPosition += Global.bigDelta;
                     GameObject.Find("Help").transform.localPosition += Global.bigDelta;
+                    GameObject.Find("Restart").transform.localPosition += Global.bigDelta;
                 }
             }
             this.transform.localPosition = Global.hide;

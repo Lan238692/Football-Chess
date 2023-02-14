@@ -22,10 +22,7 @@ public class MainGame : MonoBehaviour
     public float ballSpeed = 10f;
     public float shootSpeed = 30f;
     public float slowBallSpeed = 6f;
-    public bool moveFootball = false;
     public bool exe2times = false;
-    public Vector3 curPos;
-    public Vector3 finalPos;
 
 
     // Start is called before the first frame update
@@ -39,6 +36,7 @@ public class MainGame : MonoBehaviour
         GameObject.Find("HelpVision").transform.localPosition += Global.bigDelta;
         GameObject.Find("Exit").transform.localPosition += Global.bigDelta;
         GameObject.Find("Help").transform.localPosition += Global.bigDelta;
+        GameObject.Find("Restart").transform.localPosition += Global.bigDelta;
         GameObject.Find("ResultVisionPos").transform.localPosition += Global.bigDelta;
 
         Global.half = false;
@@ -73,6 +71,7 @@ public class MainGame : MonoBehaviour
             Global.gameTime += Global.timePerTurn;
             if(Global.gameTime == 45)
             {
+                Global.isWorking = true;
                 Global.turn = 0;
                 Global.leftPoint = Global.movePoint = Global.defaultPoint = 4;
                 //show the logo of "HALFTIME!!!" for Global.logoLastTime
@@ -81,6 +80,7 @@ public class MainGame : MonoBehaviour
             }
             if(Global.gameTime == 90)
             {
+                Global.isWorking = true;
                 Global.turn = 0;
                 Global.leftPoint = Global.movePoint = Global.defaultPoint = 4;
                 //show the logo of result for Global.logoLastTime
@@ -154,18 +154,7 @@ public class MainGame : MonoBehaviour
                     rightKickoffPos2.GetComponent<Position>().standBall = true;
                 }
             }
-
-        }
-
-        //Move the football
-        if(moveFootball == true)
-        {
-            var step = playerSpeed * Time.deltaTime;
-            myBall.transform.localPosition = Vector3.MoveTowards(myBall.transform.localPosition, finalPos, step);
-            if(Vector3.Distance(myBall.transform.localPosition, finalPos)<0.001f)
-            {
-                moveFootball = false;
-            }
+            Global.isWorking = false;
         }
 
         //Handling the actual action of shooting
@@ -243,7 +232,6 @@ public class MainGame : MonoBehaviour
             Global.isWorking = true;
             var playerStep = playerSpeed * Time.deltaTime;
             Global.player.transform.localPosition = Vector3.MoveTowards(Global.player.transform.localPosition, Global.desPosition.transform.localPosition, playerStep);
-            
             if(Global.isDribble == true)
             {
                 Global.dribbledPlayer.transform.localPosition = Vector3.MoveTowards(Global.dribbledPlayer.transform.localPosition, Global.srcPos, playerStep);
@@ -253,7 +241,7 @@ public class MainGame : MonoBehaviour
                     Global.dribbledPlayer.GetComponent<Player>().anime.Play("rig|stand");
                     Global.restorePlayerRotation(Global.dribbledPlayer, true);
                 }
-            }         
+            }       
             if(Global.isPlayerHoldsBall == true)
             {
                 var ballStep = ballSpeed * Time.deltaTime;
@@ -287,6 +275,7 @@ public class MainGame : MonoBehaviour
             }
             if(Vector3.Distance(Global.player.transform.localPosition, Global.desPosition.transform.localPosition)<0.001f)
             {
+                Debug.Log("reach target position");
                 Global.player.transform.localPosition = Global.desPosition.transform.localPosition;
                 Global.player.GetComponent<Player>().anime.Play("rig|stand");
                 Global.restorePlayerRotation(Global.player);
@@ -294,6 +283,21 @@ public class MainGame : MonoBehaviour
                 Global.isWorking = false;
                 Global.leftPoint = Global.movePoint;
                 Global.player = Global.position = null;
+
+                if(Global.isDribbleGK == true)
+                {
+                    if(Global.side == Global.half)
+                    {
+                        Global.desPos = Global.right3;
+                    }
+                    else
+                    {
+                        Global.desPos = Global.left3;
+                    }
+                    Global.isGoal = true;
+                    Global.isReadyToShoot = true;
+                    Global.isDribbleGK = false;
+                }
             }
         }
 

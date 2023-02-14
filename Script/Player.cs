@@ -8,13 +8,12 @@ using TMPro;
 public class Player : MonoBehaviour
 {
     public GameObject player;
-    
-    public Canvas mcan;
-
 
     public GameObject moveButton;
     public GameObject passButton;
     public GameObject shootButton;
+    public GameObject cancelButton;
+    public GameObject cancel2Button;
 
     public GameObject playerPosition;
 
@@ -26,6 +25,7 @@ public class Player : MonoBehaviour
 
     public Animator anime;
 
+    public Canvas mcan;
     public Camera cam;
 
     public bool passCountDown = false;
@@ -36,6 +36,8 @@ public class Player : MonoBehaviour
     void Start()
     {
         anime = GetComponent<Animator>();
+        cancelButton = GameObject.Find("ButtonMoveCancel");
+        cancel2Button = GameObject.Find("ButtonMoveCancel2");
     }
 
     // Update is called once per frame
@@ -118,8 +120,8 @@ public class Player : MonoBehaviour
             {
                 if(mSide == Global.player.GetComponent<Player>().mSide)
                     return;
-                if(isGK == true)
-                    return;
+                //if(isGK == true)
+                //    return;
             }
 
             cost = 1;
@@ -138,14 +140,19 @@ public class Player : MonoBehaviour
             if(mSide != Global.player.GetComponent<Player>().mSide)
                 return;
 
-            if(Vector3.Distance(Global.position.transform.localPosition, playerPosition.transform.localPosition)<5.5f)
+            if (Vector3.Distance(Global.position.transform.localPosition, playerPosition.transform.localPosition) < 5.5f)
                 cost = 1;
-            else if(Vector3.Distance(Global.position.transform.localPosition, playerPosition.transform.localPosition)<9.5f)
+            else if (Vector3.Distance(Global.position.transform.localPosition, playerPosition.transform.localPosition) < 9.5f)
                 cost = 2;
-            else
+            else if (Vector3.Distance(Global.position.transform.localPosition, playerPosition.transform.localPosition) < 13.5f)
                 cost = 3;
+            else
+                cost = -1;
             GameObject.Find("RightUpText").GetComponent<TMP_Text>().text = "PASS COST :";
-            GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = cost.ToString();
+            if(cost!=-1)
+                GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = cost.ToString();
+            else
+                GameObject.Find("RightUpData").GetComponent<TMP_Text>().text = "--";
             Global.buttonTimer = 100.0f;
 
             playerPosition.GetComponent<Position>().light.transform.localPosition = playerPosition.transform.localPosition;
@@ -187,6 +194,7 @@ public class Player : MonoBehaviour
                     Global.player = null;
                     Global.buttonTimer = 0f;
                     playerPosition.GetComponent<Position>().light.SetActive(false);
+                    cancel2Button.transform.localPosition = Global.hide;
                     return;
                 }
                 if(Global.isDistanceOne(Global.player, player) == false)
@@ -199,20 +207,29 @@ public class Player : MonoBehaviour
                     Global.player = null;
                     Global.buttonTimer = 0f;
                     playerPosition.GetComponent<Position>().light.SetActive(false);
+                    cancel2Button.transform.localPosition = Global.hide;
                     return;
                 }
                 if(isGK == true)
                 {
-                    Global.message = "You can't move your player to the goalkeeper!";
-                    Global.timer = 3.0f;
-                    Debug.Log("You can't move your player to the goalkeeper!");
-                    Global.isPlayerSelected = false;
-                    Global.isToMove = false;
-                    Global.player = null;
-                    Global.buttonTimer = 0f;
-                    playerPosition.GetComponent<Position>().light.SetActive(false);
-                    return;
+                    if(playerPosition.GetComponent<Position>().standBall == false)
+                    {
+                        Global.message = "You can't break through the goalkeeper!";
+                        Global.timer = 3.0f;
+                        Debug.Log("You can't break through the goalkeeper!");
+                        Global.isPlayerSelected = false;
+                        Global.isToMove = false;
+                        Global.player = null;
+                        Global.buttonTimer = 0f;
+                        playerPosition.GetComponent<Position>().light.SetActive(false);
+                        cancel2Button.transform.localPosition = Global.hide;
+                        return;
+                    }
+                    else
+                        Global.isDribbleGK = true;
                 }
+                else
+                    Global.isDribbleGK = false;
                 if(Global.position.GetComponent<Position>().standBall == true && Global.movePoint < cost)
                 {
                     Global.message = "Your point is not enough for dribbling!";
@@ -223,6 +240,7 @@ public class Player : MonoBehaviour
                     Global.player = Global.position = null;
                     Global.buttonTimer = 0f;
                     playerPosition.GetComponent<Position>().light.SetActive(false);
+                    cancel2Button.transform.localPosition = Global.hide;
                     return;
                 }
                 Global.isDribble = true;
@@ -258,6 +276,7 @@ public class Player : MonoBehaviour
             Global.adjustPlayerRotationMove(Global.player, Global.desPosition, Global.isPlayerHoldsBall);
             Global.player.GetComponent<Player>().anime.Play("rig|walk");
             Global.player.GetComponent<Player>().playerPosition.GetComponent<Position>().light.SetActive(false);
+            cancel2Button.transform.localPosition = Global.hide;
             return;
         }
         if(Global.isToPass == true)
@@ -272,9 +291,23 @@ public class Player : MonoBehaviour
                 Global.player = null;
                 Global.buttonTimer = 0f;
                 playerPosition.GetComponent<Position>().light.SetActive(false);
+                cancel2Button.transform.localPosition = Global.hide;
                 return;
             }
-            if(Global.movePoint < cost)
+            if (cost == -1)
+            {
+                Global.message = "The passing distance is too far!";
+                Global.timer = 3.0f;
+                Debug.Log("The passing distance is too far!");
+                Global.isPlayerSelected = false;
+                Global.isToPass = false;
+                Global.player = Global.position = null;
+                Global.buttonTimer = 0f;
+                playerPosition.GetComponent<Position>().light.SetActive(false);
+                cancel2Button.transform.localPosition = Global.hide;
+                return;
+            }
+            if (Global.movePoint < cost)
             {
                 Global.message = "Your point is not enough for this passing!";
                 Global.timer = 3.0f;
@@ -284,10 +317,12 @@ public class Player : MonoBehaviour
                 Global.player = Global.position = null;
                 Global.buttonTimer = 0f;
                 playerPosition.GetComponent<Position>().light.SetActive(false);
+                cancel2Button.transform.localPosition = Global.hide;
                 return;
             }
             Global.buttonTimer = 0f;
             playerPosition.GetComponent<Position>().light.SetActive(false);
+            cancel2Button.transform.localPosition = Global.hide;
 
             Global.desPosition = playerPosition;
             Global.position.GetComponent<Position>().standBall = false;
@@ -310,12 +345,14 @@ public class Player : MonoBehaviour
         
         Vector2 UIPos;
         Vector3 screenPos = cam.WorldToScreenPoint(player.transform.localPosition);        
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRT,screenPos, canvasCam,out UIPos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRT, screenPos, canvasCam, out UIPos);
 
         if(isGK == true)
         {
             Vector2 passButtonPos = UIPos - new Vector2(0f, 80f);
+            Vector2 cancelButtonPos = UIPos - new Vector2(-80f, 40f);
             passButton.transform.localPosition = passButtonPos;
+            cancelButton.transform.localPosition = cancelButtonPos; 
             moveButton.transform.localPosition = Global.hide; 
             shootButton.transform.localPosition = Global.hide; 
         }
@@ -324,9 +361,11 @@ public class Player : MonoBehaviour
             Vector2 moveButtonPos = UIPos - new Vector2(120f, 45f);
             Vector2 shootButtonPos = UIPos - new Vector2(0f, 90f);
             Vector2 passButtonPos = UIPos - new Vector2(-120f, 45f);
+            Vector2 cancelButtonPos = UIPos - new Vector2(-100f, 130f);
             moveButton.transform.localPosition = moveButtonPos; 
             shootButton.transform.localPosition = shootButtonPos;
             passButton.transform.localPosition = passButtonPos; 
+            cancelButton.transform.localPosition = cancelButtonPos; 
         }
        
         Global.isPlayerSelected = true;

@@ -36,20 +36,41 @@ public class mButton : MonoBehaviour
             Debug.Log("Game start");
             canvas.SetActive(false);
         }
+        if(buttonType == "StartAI")
+        {
+            Global.isHavingAI = true;
+            Debug.Log("Game start(AI mode)");
+            canvas.SetActive(false);
+        }
         if(buttonType == "Help")
         {
-            GameObject.Find("HelpVision").transform.localPosition = new Vector3(0f, 0f, 0f);
-            GameObject.Find("StatusCanvasPos").transform.localPosition -= Global.bigDelta;
+            GameObject.Find("HelpVision").transform.localPosition = new Vector3(0f, 0f, 0f);           
+            GameObject.Find("StatusCanvasPos").transform.localPosition += Global.bigDelta;
+            GameObject.Find("Exit").transform.localPosition += Global.bigDelta;
+            GameObject.Find("Help").transform.localPosition += Global.bigDelta;
+            GameObject.Find("Restart").transform.localPosition += Global.bigDelta;
         }
         if(buttonType == "CloseHelp")
         {
             GameObject.Find("HelpVision").transform.localPosition = Global.bigDelta;
-            GameObject.Find("StatusCanvasPos").transform.localPosition += Global.bigDelta;
+            GameObject.Find("StatusCanvasPos").transform.localPosition -= Global.bigDelta;
+            GameObject.Find("Exit").transform.localPosition -= Global.bigDelta;
+            GameObject.Find("Help").transform.localPosition -= Global.bigDelta;
+            GameObject.Find("Restart").transform.localPosition -= Global.bigDelta;
         }
         if(buttonType == "Retry")
         {
             GameObject.Find("FormationPos").transform.localPosition += Global.bigDelta;
+            GameObject.Find("ResultVisionPos").transform.localPosition += Global.bigDelta;         
+        }
+        if(buttonType == "Restart")
+        {
+            GameObject.Find("FormationPos").transform.localPosition += Global.bigDelta;
             GameObject.Find("ResultVisionPos").transform.localPosition += Global.bigDelta;
+            GameObject.Find("StatusCanvasPos").transform.localPosition += Global.bigDelta;
+            GameObject.Find("Exit").transform.localPosition += Global.bigDelta;
+            GameObject.Find("Help").transform.localPosition += Global.bigDelta;
+            GameObject.Find("Restart").transform.localPosition += Global.bigDelta;
         }
 
         //Set the position of players in different formations
@@ -218,7 +239,7 @@ public class mButton : MonoBehaviour
 	}
     void gameInitial()
     {
-        //away player position is ‘default’ for temperature
+        //away player position is ‘default’ temporarily
         Global.awayTeamPlayer[0].GetComponent<Player>().firstHalfStartPos = GameObject.Find("Pos11-2");
         Global.awayTeamPlayer[0].GetComponent<Player>().secondHalfStartPos = GameObject.Find("Pos2-2");
         Global.awayTeamPlayer[1].GetComponent<Player>().firstHalfStartPos = GameObject.Find("Pos11-4");
@@ -254,6 +275,7 @@ public class mButton : MonoBehaviour
         GameObject.Find("FormationPos").transform.localPosition -= Global.bigDelta;
         GameObject.Find("Exit").transform.localPosition -= Global.bigDelta;
         GameObject.Find("Help").transform.localPosition -= Global.bigDelta;
+        GameObject.Find("Restart").transform.localPosition -= Global.bigDelta;
         Global.isWorking = false;
         Global.playWhistle = true;
     }

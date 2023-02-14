@@ -8,6 +8,8 @@ using TMPro;
 public class Global : MonoBehaviour
 {
 
+    public static bool isHavingAI = false;
+
     //match status
 
     //When a player has finished a turn, 'timePerTurn' minutes will pass
@@ -46,10 +48,12 @@ public class Global : MonoBehaviour
     public static GameObject awayEdge;
 
     //goal position(2 positions for each goal)
-    public static Vector3 left1 = new Vector3(1.054f, 1.238f, -12.874f);
-    public static Vector3 left2 = new Vector3(-1.054f, 1.238f, -12.874f);
-    public static Vector3 right1 = new Vector3(1.054f, 1.238f, 12.874f);
-    public static Vector3 right2 = new Vector3(-1.054f, 1.238f, 12.874f);
+    public static Vector3 left1 = new Vector3(1.054f, 0.1f, -12.874f);
+    public static Vector3 left2 = new Vector3(-1.054f, 0.1f, -12.874f);
+    public static Vector3 left3 = new Vector3(0f, 0.1f, -12.874f);
+    public static Vector3 right1 = new Vector3(1.054f, 0.1f, 12.874f);
+    public static Vector3 right2 = new Vector3(-1.054f, 0.1f, 12.874f);
+    public static Vector3 right3 = new Vector3(0f, 0.1f, 12.874f);
 
     //goalball position
     public static Vector3 leftGoalball = new Vector3(0f, 0.1f, -10.6f);
@@ -88,6 +92,7 @@ public class Global : MonoBehaviour
     public static bool isReadyToPass = false;
     public static bool isReadyToShoot = false;
     public static bool isGoal = false;
+    public static bool isDribbleGK = false;
 
     //These two large numbers are used to move unwanted menus out of sight.
     public static Vector3 hide = new Vector3(-10000, -10000, -10000);
