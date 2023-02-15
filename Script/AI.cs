@@ -51,7 +51,6 @@ public class AI : MonoBehaviour
     {
         if(Global.isHavingAI == false)
             return;
-
         if(shootCountDown == true && Global.kickTimer <= 0)
         {
             Global.isReadyToShoot = true;
@@ -68,8 +67,17 @@ public class AI : MonoBehaviour
         if(shootCountDown == true || passCountDown == true)
             return;
 
+        /*
+        Here is the action part of the AI, the AI will give priority to retaking the ball, 
+            and then decide the action strategy based on the remaining action points.
+        The AI's decision making method is to first determine whether it is suitable for shooting,
+            and if the success rate of shooting is too low, it will try to "efficiently" pass the ball, 
+            and when there is no suitable passing target, 
+            it will choose to carry the ball or organize teammates to push forward.
+        */
         if(Global.side == true && Global.isWorking == false && Global.movePoint > 0)
         {
+            //Record location information
             for(int i = 0; i < 12; i++)
                 for(int j = 0; j < 9; j++)
                 {
@@ -133,6 +141,7 @@ public class AI : MonoBehaviour
                     ballPos[1] = row - 1;
                 }
             }
+            //Try to break off possession when there is no possession
             if(pos[ballPos[0], ballPos[1]] == enemy)
             {
                 int closestPlayer = -1;
@@ -226,10 +235,9 @@ public class AI : MonoBehaviour
                     targetPos = string.Format("Pos{0}-{1}", temp3[0] + 1, temp3[1] + 1);
                 }
                 executeMove(sourcePos, targetPos, false);                
-                //Debug.Log(sourcePos);
-                //Debug.Log(targetPos);
                 return;
             }
+            //Actions when holding the ball
             if(pos[ballPos[0], ballPos[1]] == ally)
             {
                 int player = -1;
@@ -250,16 +258,15 @@ public class AI : MonoBehaviour
                     return;
                 }
 
-                //firstly, if the ball is at GK's position, AI will firstly pass out
+                //Firstly, if the ball is at GK's position, AI will firstly pass out
                 //Here is a special case, if all players run upfield, 
                 //the goalkeeper will face a situation where there is no one to pass to.
-                //But, it is almost impossible for AI
+                //However, it is almost impossible for AI
                 if(player == GK)
                 {
                     if(Global.movePoint < 3)
                         Debug.Log("ERROR: GK with move point less than 3!");
                     int targetPlayer = -1;
-                    //float distance = -1;
                     int targetZ;
                     if(Global.side == Global.half)
                         targetZ = -1;
@@ -308,12 +315,23 @@ public class AI : MonoBehaviour
                     }
                 }
 
-                //randomMove();
-                //return;
-
                 string sourcePos = string.Format("Pos{0}-{1}", allyPos[player, 0] + 1, allyPos[player, 1] + 1);
                 string targetPos = "";
                 //then, AI will judge its movement by move point
+                /*
+                Since shooting costs 3 action points, 
+                    the AI will first try to push forward when the action point is greater than 3 
+                    and keep the action point no lower than 3.
+                When the action point is exactly 3, 
+                    the AI will determine if it is currently suitable for shooting, 
+                    and if not, the AI will continue to push forward until it runs out of action points.
+                When the AI has no good choice or the action point is too low, 
+                    the AI will choose to let the teammate push forward.
+                When pushing forward, the AI will consider passing or dribbling the ball. 
+                    Only when the action points spent on passing are less than or equal 
+                    to the same magnitude of pushing forward, the AI will choose to pass the ball, 
+                    which avoids ineffective passing.
+                */
                 if(Global.leftPoint >= 6)
                 {
                     int passCost = findPassTarget(player, 3);
@@ -424,6 +442,12 @@ public class AI : MonoBehaviour
             }
         }
     }
+
+    /*
+    This function looks for the most cost effective pass target and returns -1 when it cannot be found 
+        (e.g. when the player with the ball is already closest to the opponent's goal).
+    The limit parameter determines the maximum number of action points that can be consumed on that pass.
+    */
     int findPassTarget(int playerNo, int limit = 3)
     {
         playerDes[0] = -1;
@@ -491,6 +515,11 @@ public class AI : MonoBehaviour
         playerDes[1] = bestPos[1];
         return (int)passCost;
     }
+
+    /*
+    This function is used to calculate the goal success rate for the current position, 
+        which is related to the player distance and the number of defensive players blocked.
+    */
     float possibilityForShooting(int playerNo)
     {
         float possibility = 0f;
@@ -526,6 +555,11 @@ public class AI : MonoBehaviour
         }
         return possibility;
     }
+
+    /*
+    This function is used to find the right place to move: 
+        the attacking route closest to the goal and not blocked by AI's own players.
+    */
     int findMoveTarget(int playerNo, int limit = 2)
     {
         moveDes[0] = -1;
@@ -697,6 +731,8 @@ public class AI : MonoBehaviour
         return -1;
 
     }
+
+    //Let teammates take a step forward
     void randomMove()
     {
         int shortestDistance = 99999;
@@ -854,7 +890,8 @@ public class AI : MonoBehaviour
         return -1;
     }
 
-    //Calculate the shortest distance from posA to posB using dynamic programming
+    //Calculate the shortest distance from posA to posB using "dynamic programming"
+    //This function will be called in almost every AI operation.
     int playerDistance(int[] posA, int[] posB, bool isHavingBall)
     {
         if(posA[0] == posB[0] && posA[1] == posB[1])
@@ -925,6 +962,7 @@ public class AI : MonoBehaviour
                     costMapB[temp3[0], temp3[1]]+playerDistance(temp3, posB, true));
     }
 
+    //The following three functions are used to perform specific game actions (move, shoot or pass)
     void executeShoot(string sourcePos, float shootPossibility)
     {
         GameObject mSrcPosition = GameObject.Find(sourcePos);
@@ -963,10 +1001,6 @@ public class AI : MonoBehaviour
             }
             Global.isGoal = false;
         }
-        /*
-        Global.isReadyToShoot = true;
-        Global.movePoint -= 3;
-        */
         Global.kickTimer = Global.preKickTime;
         Global.adjustPlayerRotationShoot(Global.player);
         Global.player.GetComponent<Player>().anime.Play("rig|kick");
@@ -1001,8 +1035,6 @@ public class AI : MonoBehaviour
         mSrcPosition.GetComponent<Position>().standBall = false;
         mDesPosition.GetComponent<Position>().standBall = true;
 
-        //Global.isReadyToPass = true;
-        //Global.movePoint -= cost;
         finalCost = cost;
 
         Global.kickTimer = Global.preKickTime;
@@ -1011,7 +1043,6 @@ public class AI : MonoBehaviour
         passCountDown = true;
 
     }
-
 
     void executeMove(string sourcePos, string targetPos, bool isHavingBall)
     {
@@ -1066,6 +1097,14 @@ public class AI : MonoBehaviour
             return false;
     }
 
+    /*
+    Calculate their actual distance from the two coordinate position information, 
+        because this game uses the actual distance when calculating shots and passes.
+    For example, we use pos[0][0], pos[0][1] to keep track of which grid has players on it.
+        (0, 0), (0, 1) are their coordinate positions, 
+        but the actual positions could be (-13.5, 0, 12),(-11.5, 0, 12), 
+        and when we need to calculate the distance, we calculate the actual distance.
+    */
     float computeDistance(int[] posA, int[] posB)
     {
         string APos = string.Format("Pos{0}-{1}", posA[0] + 1, posA[1] + 1);
