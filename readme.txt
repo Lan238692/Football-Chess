@@ -1,3 +1,6 @@
+動画サイト：https://www.youtube.com/watch?v=wVSKrmSqfD4
+実行可能なファイル：https://github.com/Lan238692/Football-Chess/releases/download/Ver.1.1/Football-chess1.1.zip
+
 スクリプトコードは、Script フォルダに配置されています。
 
 ゲームルール
